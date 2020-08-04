@@ -2,68 +2,82 @@ package com.example.liangxq.shopping;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 
-import com.example.httplibrary.HttpManager;
 import com.example.httplibrary.callback.HttpCallBack;
 import com.example.httplibrary.client.HttpClient;
-import com.example.httplibrary.disposable.RequestManagerIml;
-import com.example.httplibrary.server.ApiServer;
-import com.example.liangxq.shopping.app.Demo;
-import com.example.liangxq.shopping.app.Response;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import com.google.gson.reflect.TypeToken;
-import com.trello.rxlifecycle2.android.ActivityEvent;
 import com.trello.rxlifecycle2.components.support.RxAppCompatActivity;
 
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 
-import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Action;
-import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
 
-public class MainActivity extends RxAppCompatActivity {
+public class MainActivity extends RxAppCompatActivity implements View.OnClickListener {
 
     private Disposable disposable;
+    private EditText mNameEt;
+    private EditText mPswEt;
+    private Button mLoginBt;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        new HttpClient.Builder()
-                .setApiUrl("article/listproject/0/json")
-                .post()
-                .setJsonBody("",true)
-                .build()
-                .request(new HttpCallBack<Demo>() {
-            @Override
-            public void onSuccess(Demo demo) {
-                Log.e("liangxq", "onSuccess:88888 "+demo.toString() );
-            }
-            @Override
-            public Demo convert(JsonElement result) {
-                return new Gson().fromJson(new Gson().toJson(result),Demo.class);
-            }
-
-            @Override
-            public void onError(String message, int code) {
-                Log.e("liangxq", "onError: "+message );
-            }
-            @Override
-            public void cancle() {
-
-            }
-        });
+        initView();
 
     }
 
+    private void initView() {
+        mNameEt = (EditText) findViewById(R.id.et_name);
+        mPswEt = (EditText) findViewById(R.id.et_psw);
+        mLoginBt = (Button) findViewById(R.id.bt_login);
+        mLoginBt.setOnClickListener(this);
+    }
+
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.bt_login:
+                String name = mNameEt.getText().toString();
+                String psw = mPswEt.getText().toString();
+                HashMap<String, Object> map = new HashMap<>();
+                map.put("username",name);
+                map.put("psw",psw);
+                new HttpClient.Builder()
+                        .setApiUrl("project/tree/json")
+//                        .post()
+//                        .setParamser(map)
+//                        .setHeadres()
+                        .get()
+                        .build()
+                        .request(new HttpCallBack<ClassifyBean>(){
+                            @Override
+                            public void onError(String message, int code) {
+                                Log.e("wangys", "onError: "+message+code );
+                            }
+
+                            @Override
+                            public void cancle() {
+
+                            }
+
+                            @Override
+                            public void onSuccess(ClassifyBean bean) {
+                                Log.e("wangys", "onSuccess: "+bean.toString() );
+                            }
+
+                            @Override
+                            public ClassifyBean convert(JsonElement result) {
+                                return new Gson().fromJson(new Gson().toJson(result),ClassifyBean.class);
+                            }
+                        });
+                break;
+            default:
+                break;
+        }
     }
 }
